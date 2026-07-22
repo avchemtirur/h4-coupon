@@ -6,6 +6,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Simple root test
+app.get('/', (req, res) => {
+  res.send('H4 Backend is live!');
+});
+
 // Health check API
 app.get('/api/health', (req, res) => {
   res.json({
