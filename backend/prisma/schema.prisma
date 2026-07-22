@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("manager")
+  createdAt DateTime @default(now())
+}
+
+model Customer {
+  id             Int            @id @default(autoincrement())
+  name           String
+  mobile         String         @unique
+  totalPoints    Int            @default(0)
+  redeemedPoints Int            @default(0)
+  createdAt      DateTime       @default(now())
+  pointHistory   PointHistory[]
+}
+
+model Partner {
+  id             Int            @id @default(autoincrement())
+  name           String
+  mobile         String         @unique
+  professionId   Int
+  profession     Profession     @relation(fields: [professionId], references: [id])
+  location       String
+  totalPoints    Int            @default(0)
+  redeemedPoints Int            @default(0)
+  createdAt      DateTime       @default(now())
+  orders         Order[]
+  pointHistory   PointHistory[]
+}
+
+model Profession {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  isActive  Boolean   @default(true)
+  sortOrder Int       @default(0)
+  partners  Partner[]
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  name      String
+  image     String?
+  unitId    Int
+  unit      Unit     @relation(fields: [unitId], references: [id])
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+}
+
+model Unit {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  products Product[]
+}
+
+model Coupon {
+  id           Int       @id @default(autoincrement())
+  serialNumber String    @unique
+  qrCodeImage  String?
+  rewardType   String
+  rewardValue  Float
+  status       String    @default("unused")
+  customerId   Int?
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  usedAt       DateTime?
+  createdAt    DateTime  @default(now())
+  expiryDate   DateTime?
+}
+
+model Order {
+  id              Int      @id @default(autoincrement())
+  partnerId       Int
+  partner         Partner  @relation(fields: [partnerId], references: [id])
+  productId       Int
+  product         Product  @relation(fields: [productId], references: [id])
+  quantity        Float
+  unitId          Int
+  unit            Unit     @relation(fields: [unitId], references: [id])
+  projectLocation String
+  status          String   @default("pending")
+  pointsAwarded   Int      @default(0)
+  approvedBy      Int?
+  deliveredAt     DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model PointRule {
+  id              Int      @id @default(autoincrement())
+  ruleType        String
+  productId       Int?
+  product         Product? @relation(fields: [productId], references: [id])
+  minQuantity     Float?
+  pointsPerUnit   Int?
+  cashbackPercent Float?
+  validFrom       DateTime?
+  validTo         DateTime?
+  isActive        Boolean  @default(true)
+  minThreshold    Int?
+  expiryDays      Int?
+}
+
+model PointHistory {
+  id              Int       @id @default(autoincrement())
+  userType        String
+  userId          Int
+  customer        Customer? @relation(fields: [userId], references: [id])
+  partner         Partner?  @relation(fields: [userId], references: [id])
+  transactionType String
+  points          Int
+  referenceId     Int?
+  description     String?
+  createdAt       DateTime  @default(now())
+}
+
+model PageConfig {
+  id         Int      @id @default(autoincrement())
+  portal     String
+  screenName String
+  configJson Json
+  language   String   @default("en")
+  updatedAt  DateTime @updatedAt
+}
+
+model Message {
+  id       Int    @id @default(autoincrement())
+  key      String
+  language String
+  text     String
+}
+
+model Setting {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value Json
+}
+
+model Banner {
+  id          Int      @id @default(autoincrement())
+  portal      String
+  imageUrl    String
+  link        String?
+  displayTime Int      @default(5)
+  sortOrder   Int      @default(0)
+  animation   String?
+  isActive    Boolean  @default(true)
+}
